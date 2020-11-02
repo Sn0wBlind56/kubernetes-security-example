@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busybox
+  template:
+    metadata:
+      labels:
+        app: busybox
+      annotations:
+        # This annotation tells the (mutating) Linkerd admission controller to add the linkerd-proxy sidecar container
+        linkerd.io/inject: enabled
+    spec:
+      containers:
+        - name: busybox
+          image: gcr.io/google-containers/busybox
+          command: [ "sh", "-c", "echo 'Sleeping for 1 hour'; sleep 3600" ]
+      # This is now optional, since the new basic PodSecurityPolicy allows running as root (Linkerd requires it)
+      securityContext:
+        runAsUser: 1000
