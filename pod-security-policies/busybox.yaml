@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busybox
+  template:
+    metadata:
+      labels:
+        app: busybox
+    spec:
+      containers:
+        - name: busybox
+          image: gcr.io/google-containers/busybox
+          command: [ "sh", "-c", "echo 'Sleeping for 1 hour'; sleep 3600" ]
+      # If we would remove this SecurityContext, the Pod creation would fail with the message below (as expected)
+      # "Error: container has runAsNonRoot and image will run as root"
+      securityContext:
+        runAsUser: 1000

@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: psp-allow-all
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: psp-allow-all
+subjects:
+  # Grant Kubernetes system accounts in the kube-system namespace permissions to use the PodSecurityPolicy
+  # This is needed because of the object/controller hierarchy (e.g. Deployment > ReplicaSet > Pod)
+  # Deployment controllers will create replica sets, after which the ReplicaSet controller will try to create Pods
+  # If the ReplicaSet controller system account doesn't have 'use' permissions on the policy, it can't create the Pods
+  - kind: Group
+    name: system:serviceaccounts:kube-system
+    namespace: kube-system
+  # Grant the kubelet permissions to use the PodSecurityPolicy
+  - kind: Group
+    name: system:nodes
+    namespace: kube-system
