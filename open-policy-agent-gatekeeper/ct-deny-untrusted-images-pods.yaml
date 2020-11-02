@@ -1,0 +1,49 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: denyuntrustedimagespods
+spec:
+  crd:
+    spec:
+      names:
+        kind: DenyUntrustedImagesPods
+    validation:
+      openAPIV3Schema:
+        properties:
+          trustedRegistries:
+            type: array
+            items:
+              type: string
+          trustedImages:
+            type: array
+            items:
+              type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package denyuntrustedimages.pods
+
+        trustedRegistries := input.parameters.trustedRegistries
+        trustedImages := input.parameters.trustedImages
+
+        violation[{"msg": msg}] {
+            image := input.review.object.spec.containers[_].image
+            not trusted_registry[image]
+            not trusted_image[image]
+            msg := sprintf("Untrusted container image %v", [image])
+        }
+
+        trusted_registry[image] {
+            input.review.object.kind == "Pod"
+            image := input.review.object.spec.containers[_].image
+            trustedRegistry := trustedRegistries[_]
+            expectedPrefix := concat("", [trustedRegistry, "/"])
+            startswith(image, expectedPrefix)
+        }
+
+        trusted_image[image] {
+            input.review.object.kind == "Pod"
+            image := input.review.object.spec.containers[_].image
+            trustedImage := trustedImages[_]
+            image == trustedImage
+        }

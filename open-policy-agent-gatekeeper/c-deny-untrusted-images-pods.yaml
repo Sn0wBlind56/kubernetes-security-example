@@ -1,0 +1,15 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: DenyUntrustedImagesPods
+metadata:
+  name: deny-untrusted-images-pods
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+  parameters:
+    trustedRegistries:
+      - "gcr.io/google-containers"
+    trustedImages:
+      - "ghcr.io/linkerd/proxy:edge-20.10.3"

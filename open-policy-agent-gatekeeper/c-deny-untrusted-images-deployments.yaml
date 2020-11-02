@@ -1,0 +1,15 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: DenyUntrustedImagesDeployments
+metadata:
+  name: deny-untrusted-images-deployments
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+  parameters:
+    trustedRegistries:
+      - "gcr.io/google-containers"
+    trustedImages:
+      - "ghcr.io/linkerd/proxy:edge-20.10.3"
